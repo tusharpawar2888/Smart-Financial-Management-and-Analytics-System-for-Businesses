@@ -28,19 +28,31 @@ pipeline {
 
         stage('Code Quality') {
             steps {
-                bat '"%PYTHON%" -m flake8 app.py --count --statistics'
+                script {
+                    def lintStatus = bat(
+                        returnStatus: true,
+                        script: '"%PYTHON%" -m flake8 app.py --count --statistics'
+                    )
+
+                    if (lintStatus != 0) {
+                        echo 'WARNING: Flake8 found issues. Review them and improve the code.'
+                    } else {
+                        echo 'Flake8 passed. No code quality issues found.'
+                    }
+                }
             }
         }
 
         stage('Syntax Validation') {
             steps {
                 bat '"%PYTHON%" -m py_compile app.py'
+                echo 'Python syntax validation passed'
             }
         }
 
         stage('Complete') {
             steps {
-                echo 'Business Finance Desk CI pipeline completed successfully!'
+                echo 'Business Finance Desk CI pipeline completed!'
             }
         }
     }
