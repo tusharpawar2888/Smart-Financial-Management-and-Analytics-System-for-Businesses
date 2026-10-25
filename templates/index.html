@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Finance Desk</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="/" aria-label="Business Finance Desk home">
+            <span class="brand-mark">₹</span>
+            <span>
+                <strong>Business Finance Desk</strong>
+                <small>Excel-connected financial analysis</small>
+            </span>
+        </a>
+        <div style="display:flex;align-items:center;gap:16px">
+            <div class="connection-status" id="connection-status"><span class="pulse"></span><span>Checking workbook…</span></div>
+            <span style="font-size:12px;color:#49615e">{{ company_name }}</span>
+            <form method="post" action="{{ url_for('logout') }}"><button class="button secondary" type="submit">Log out</button></form>
+        </div>
+    </header>
+
+    <div class="app-shell">
+        <aside class="sidebar">
+            <section class="side-section">
+                <p class="eyebrow">DATA ENTRY</p>
+                <h2>Record a transaction</h2>
+                <p class="side-copy">Every entry is saved directly to the shared Excel workbook.</p>
+                <form id="transaction-form" class="stacked-form">
+                    <label>Date
+                        <input type="date" name="date" id="transaction-date" required>
+                    </label>
+                    <label>Transaction type
+                        <select name="transaction_type" required>
+                            <option value="Income">Income</option>
+                            <option value="Expense">Expense</option>
+                        </select>
+                    </label>
+                    <label>Category
+                        <input type="text" name="category" list="category-options" placeholder="e.g. Sales, Rent" required>
+                        <datalist id="category-options"></datalist>
+                    </label>
+                    <label>Description
+                        <input type="text" name="description" placeholder="e.g. August retail sales" required>
+                    </label>
+                    <label>Amount (₹)
+                        <input type="number" name="amount" min="0.01" step="0.01" placeholder="0.00" required>
+                    </label>
+                    <label>Customer or supplier <span class="optional">optional</span>
+                        <input type="text" name="party" placeholder="Name">
+                    </label>
+                    <label>Due date <span class="optional">optional</span>
+                        <input type="date" name="due_date">
+                    </label>
+                    <label>Payment status
+                        <select name="payment_status">
+                            <option value="Paid">Paid</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Overdue">Overdue</option>
+                        </select>
+                    </label>
+                    <button class="button primary" type="submit">Save to Excel</button>
+                </form>
+            </section>
+
+            <section class="side-section excel-section">
+                <p class="eyebrow">EXCEL SYNC</p>
+                <h2>Use your workbook</h2>
+                <p class="side-copy">Update the downloaded workbook in Excel. This page checks for changes every 10 seconds.</p>
+                <div class="file-actions">
+                    <a class="button secondary" href="/api/template">Download template</a>
+                    <a class="button secondary" href="/api/workbook">Download current workbook</a>
+                </div>
+                <form id="upload-form" class="upload-form">
+                    <label class="file-picker">Choose completed Excel file
+                        <input type="file" name="file" accept=".xlsx" required>
+                    </label>
+                    <label>When uploading
+                        <select name="mode">
+                            <option value="append">Add to existing records</option>
+                            <option value="replace">Replace all records</option>
+                        </select>
+                    </label>
+                    <button class="button secondary" type="submit">Import workbook</button>
+                </form>
+            </section>
+        </aside>
+
+        <main class="content">
+            <div id="message-area" aria-live="polite"></div>
+            <section class="page-heading">
+                <div>
+                    <p class="eyebrow">FINANCIAL OVERVIEW</p>
+                    <h1>See the financial position of your business</h1>
+                    <p>Revenue, expenses, payment follow-ups, and clear rule-based observations from your recorded transactions.</p>
+                </div>
+                <button class="button refresh-button" type="button" id="refresh-button">↻ Refresh data</button>
+            </section>
+
+            <section class="filters" aria-label="Dashboard filters">
+                <label>From
+                    <input type="date" id="start-date">
+                </label>
+                <label>To
+                    <input type="date" id="end-date">
+                </label>
+                <label>Transaction type
+                    <select id="type-filter">
+                        <option value="">All transactions</option>
+                        <option value="Income">Income</option>
+                        <option value="Expense">Expense</option>
+                    </select>
+                </label>
+                <label>Category
+                    <select id="category-filter">
+                        <option value="">All categories</option>
+                    </select>
+                </label>
+                <button class="text-button" type="button" id="clear-filters">Clear filters</button>
+            </section>
+
+            <section class="kpi-grid" aria-label="Financial summary">
+                <article class="kpi-card revenue-card">
+                    <span>Revenue</span><strong id="kpi-income">₹0</strong><small>Income in selected period</small>
+                </article>
+                <article class="kpi-card expense-card">
+                    <span>Expenses</span><strong id="kpi-expenses">₹0</strong><small>Costs in selected period</small>
+                </article>
+                <article class="kpi-card profit-card">
+                    <span>Profit</span><strong id="kpi-profit">₹0</strong><small id="kpi-margin">0% profit margin</small>
+                </article>
+                <article class="kpi-card outstanding-card">
+                    <span>Pending customer payments</span><strong id="kpi-outstanding">₹0</strong><small id="kpi-pending-count">0 invoices awaiting payment</small>
+                </article>
+                <article class="kpi-card due-card">
+                    <span>Customer payments due soon</span><strong id="kpi-due-soon">₹0</strong><small id="kpi-overdue">₹0 overdue</small>
+                </article>
+                <article class="kpi-card payable-card">
+                    <span>Company bills to pay</span><strong id="kpi-company-payable">₹0</strong><small id="kpi-company-overdue">₹0 overdue</small>
+                </article>
+                <article class="kpi-card forecast-card">
+                    <span>30-day cash estimate</span><strong id="kpi-forecast">₹0</strong><small>Based on recent cash flow</small>
+                </article>
+            </section>
+
+            <section class="dashboard-grid">
+                <article class="panel wide-panel">
+                    <div class="panel-heading">
+                        <div><h2>Monthly income and expenses</h2><p>Amounts in ₹</p></div>
+                        <span class="chart-legend"><i class="income-dot"></i> Income <i class="expense-dot"></i> Expenses</span>
+                    </div>
+                    <div class="chart-area" id="monthly-chart"></div>
+                </article>
+                <article class="panel">
+                    <div class="panel-heading"><div><h2>Expense categories</h2><p>Largest costs in selected period</p></div></div>
+                    <div class="bar-list" id="expense-categories"></div>
+                </article>
+                <article class="panel">
+                    <div class="panel-heading"><div><h2>Top revenue sources</h2><p>Based on transaction descriptions</p></div></div>
+                    <div class="rank-list" id="revenue-list"></div>
+                </article>
+            </section>
+
+            <section class="panel insights-panel">
+                <div class="panel-heading"><div><h2>Automated analysis</h2><p>Practical observations generated from your financial records</p></div></div>
+                <div id="insights-list" class="insights-list"></div>
+            </section>
+
+            <section class="panel followup-panel">
+                <div class="panel-heading">
+                    <div><h2>Payment follow-up</h2><p>Pending customer payments, ordered by due date</p></div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Customer</th><th>Description</th><th>Due date</th><th>Payment status</th><th class="amount-cell">Amount to collect</th></tr></thead>
+                        <tbody id="payment-followups-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel followup-panel">
+                <div class="panel-heading">
+                    <div><h2>Company payments to make</h2><p>Pending supplier bills, ordered by due date</p></div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Supplier</th><th>Description</th><th>Due date</th><th>Payment status</th><th class="amount-cell">Amount to pay</th></tr></thead>
+                        <tbody id="company-payment-followups-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel transactions-panel">
+                <div class="panel-heading">
+                    <div><h2>Transactions</h2><p id="transaction-count">0 records shown</p></div>
+                    <span class="workbook-label" id="workbook-label">financial_records.xlsx</span>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Description</th><th>Party</th><th>Due date</th><th>Status</th><th class="amount-cell">Amount</th></tr></thead>
+                        <tbody id="transactions-body"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

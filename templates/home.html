@@ -1,0 +1,17 @@
+{% extends 'base_auth.html' %}{% block title %}Business Finance Desk | Financial clarity{% endblock %}
+{% block body %}
+<main class="marketing">
+  <section class="hero">
+    <div><p class="section-kicker">A PRACTICAL FINANCE WORKSPACE</p><h1>Your business numbers, in one clear place.</h1><p class="hero-copy">Record income and expenses, work with your own Excel workbook, and see the details that help you make your next decision.</p><div class="hero-actions"><a class="main-action" href="{{ url_for('signup') }}">Create your workspace</a><a class="alt-action" href="{{ url_for('login') }}">Log in to your account</a></div></div>
+    <div class="preview-card"><div class="preview-top"><span>BUSINESS SNAPSHOT</span><span>Illustrative preview</span></div><div class="preview-total">₹2,48,500</div><div class="preview-note">Income recorded this month</div><div class="preview-bars"><span style="height:35%"></span><span style="height:56%"></span><span style="height:44%"></span><span style="height:74%"></span><span style="height:62%"></span><span style="height:88%"></span><span style="height:68%"></span><span style="height:100%"></span></div><div style="display:flex;justify-content:space-between;color:#6a7d7b;font-size:11px;margin-top:10px"><span>Monthly overview</span><span>Sample data only</span></div></div>
+  </section>
+  <section class="feature-section" id="features"><p class="section-kicker">BUILT FOR DAILY BUSINESS WORK</p><h2>Useful tools, without the clutter.</h2><div class="feature-grid">
+    <article class="feature"><span class="feature-num">01 / RECORDS</span><h3>Income and expenses</h3><p>Keep transactions, categories, dates and payment status organised in one workspace.</p></article>
+    <article class="feature"><span class="feature-num">02 / EXCEL</span><h3>Your workbook stays central</h3><p>Import completed .xlsx sheets, download a clean template, and export your records whenever needed.</p></article>
+    <article class="feature"><span class="feature-num">03 / OVERVIEW</span><h3>See the bigger picture</h3><p>Review revenue, expenses, profit, pending payments, cash estimates and monthly trends.</p></article>
+    <article class="feature"><span class="feature-num">04 / FOLLOW-UP</span><h3>Know what needs attention</h3><p>Find overdue customer payments and supplier bills without scanning every row.</p></article>
+    <article class="feature"><span class="feature-num">05 / WORKSPACE</span><h3>Separate company records</h3><p>Each client account uses its own workbook so another client cannot browse your finance data through the app.</p></article>
+    <article class="feature"><span class="feature-num">06 / ACCESS</span><h3>Simple account access</h3><p>Sign up with your company name, email and password. Admin tools manage accounts, not client financials.</p></article>
+  </div></section>
+</main>
+{% endblock %}

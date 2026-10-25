@@ -1,0 +1,12 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.env
+data/accounts.sqlite3
+data/accounts.sqlite3-shm
+data/accounts.sqlite3-wal
+data/clients/
+data/financial_records.xlsx
+data/~$*.xlsx
+instance/
